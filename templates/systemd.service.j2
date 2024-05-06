@@ -1,0 +1,25 @@
+# vi: set ft=ini
+[Unit]
+Description={{ description }}
+Documentation={{ documentation }}
+After={{ after }}
+AssertFileIsExecutable={{ assert_file_is_executable }}
+AssertPathExists={{ assert_path_exists }}
+
+[Service]
+User={{ user }}
+AmbientCapabilities={{ ambient_capabilities }}
+Type={{ type }}
+ExecStart={{ exec_start }}
+Restart={{ restart }}
+WatchdogSec={{ watchdog_sec }}
+ProtectSystem={{ protect_system }}
+PrivateTmp={{ private_tmp }}
+ProtectHome={{ protect_home }}
+PrivateDevices={{ private_devices }}
+ProtectKernelTunables={{ protect_kernel_tunables }}
+ProtectControlGroups={{ protect_control_groups }}
+
+[Install]
+WantedBy={{ wanted_by }}
+

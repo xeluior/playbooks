@@ -1,0 +1,26 @@
+# vi: set ft=yaml
+---
+accesslog: {}
+api:
+  disabledashboardad: true
+  insecure: true
+entrypoints:
+  traefik:
+    address: '127.0.0.1:8080'
+  http:
+    address: ':80'
+    asdefault: true
+  https:
+    address: ':443'
+    asdefault: true
+    http:
+      tls:
+        domains:
+          - main: '{{ ansible_fqdn }}'
+            sans:
+              - '{{ ansible_hostname }}'
+log: {}
+providers:
+  docker:
+    exposedbydefault: false
+...

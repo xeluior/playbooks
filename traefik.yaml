@@ -1,0 +1,71 @@
+---
+- name: Install Traefik
+  hosts: localhost
+  become: true
+  become_user: root
+  gather_facts: true
+
+  tasks:
+  - name: Create Traefik service account
+    ansible.builtin.user:
+      name: traefik
+      create_home: false
+      shell: /sbin/nologin
+      state: present
+      system: true
+
+  - name: Get Traefik Tarball
+    ansible.builtin.get_url:
+      url: https://github.com/traefik/traefik/releases/download/v3.0.0/traefik_v3.0.0_linux_amd64.tar.gz
+      dest: /tmp/traefik_v3.0.0_linux_amd64.tar.gz
+      checksum: sha256:https://github.com/traefik/traefik/releases/download/v3.0.0/traefik_v3.0.0_checksums.txt
+
+  - name: Install Traefik from Tarball
+    ansible.builtin.unarchive:
+      src: /tmp/traefik_v3.0.0_linux_amd64.tar.gz
+      dest: /usr/local/bin
+      include:
+      - traefik
+      mode: '0755'
+
+  - name: Make Traefik config directory
+    ansible.builtin.file:
+      path: /etc/traefik
+      state: directory
+
+  - name: Install Traefik Config
+    ansible.builtin.template:
+      src: ./templates/traefik.yaml.j2
+      dest: /etc/traefik/traefik.yaml
+
+  - name: Install Traefik Systemd Service
+    ansible.builtin.template:
+      src: ./templates/systemd.service.j2
+      dest: /etc/systemd/system/traefik.service
+    vars:
+      description: Traefik
+      documentation: https://doc.traefik.io/traefik/
+      after: network_online.target
+      assert_file_is_executable: /usr/local/bin/traefik
+      assert_path_exists: /etc/traefik/traefik.yaml
+      user: traefik
+      ambient_capabilities: CAP_NET_BIND_SERVICE
+      type: notify
+      exec_start: /usr/local/bin/traefik --configfile=/etc/traefik/traefik.yaml
+      restart: always
+      watchdog_sec: 1s
+      protect_system: strict
+      private_tmp: true
+      protect_home: true
+      private_devices: true
+      protect_kernel_tunables: true
+      protect_control_groups: true
+      wanted_by: multi-user.target
+
+  - name: Enable Traefik Systemd Service
+    ansible.builtin.systemd_service:
+      name: traefik.service
+      daemon_reload: true
+      enabled: true
+      state: started
+...
